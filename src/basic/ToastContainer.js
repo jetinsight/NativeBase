@@ -108,7 +108,8 @@ class ToastContainer extends Component {
       buttonTextStyle: config.buttonTextStyle,
       buttonStyle: config.buttonStyle,
       textStyle: config.textStyle,
-      onClose: config.onClose
+      onClose: config.onClose,
+      childComponent: config.childComponent
     });
     // If we have a toast already open, cut off its close timeout so that it won't affect *this* toast.
     if (this.closeTimeout) {
@@ -155,7 +156,7 @@ class ToastContainer extends Component {
             success={this.state.type === 'success'}
             warning={this.state.type === 'warning'}
           >
-            <Text style={this.state.textStyle}>I am the text</Text>
+            {this.state.childComponent}
             {this.state.buttonText && (
               <Button
                 style={this.state.buttonStyle}

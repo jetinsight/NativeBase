@@ -155,7 +155,7 @@ class ToastContainer extends Component {
             success={this.state.type === 'success'}
             warning={this.state.type === 'warning'}
           >
-            <Text style={this.state.textStyle}>{this.state.text}</Text>
+            <Text style={this.state.textStyle}>I am the text</Text>
             {this.state.buttonText && (
               <Button
                 style={this.state.buttonStyle}

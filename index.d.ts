@@ -1187,7 +1187,7 @@ declare module "native-base" {
 			text: string;
 			buttonText?: string;
 			position?: "top" | "bottom" | "center";
-			type?: "danger" | "success" | "warning";
+			type?: "danger" | "success" | "warning" | "info";
 			duration?: number;
 			onClose?: (reason: "user" | "timeout" | "functionCall") => any;
 			style?: RnViewStyleProp;

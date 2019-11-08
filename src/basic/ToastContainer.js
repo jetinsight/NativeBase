@@ -158,7 +158,10 @@ class ToastContainer extends Component {
             info={this.state.type === 'info'}
           >
             {this.state.childComponent}
-            {this.state.buttonText && (
+            {!this.state.childComponent && (
+              <Text style={this.state.textStyle}>{this.state.text}</Text>
+            )}
+            {!this.state.childComponent && this.state.buttonText && (
               <Button
                 style={this.state.buttonStyle}
                 onPress={() => this.closeToast('user')}

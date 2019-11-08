@@ -155,6 +155,7 @@ class ToastContainer extends Component {
             danger={this.state.type === 'danger'}
             success={this.state.type === 'success'}
             warning={this.state.type === 'warning'}
+            info={this.state.type === 'info'}
           >
             {this.state.childComponent}
             {this.state.buttonText && (

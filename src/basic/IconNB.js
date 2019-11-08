@@ -29,8 +29,6 @@ class IconNB extends Component {
   }
 
   setIcon(iconType) {
-    console.log('Set icontype:', iconType);
-    console.log('This context theme:', get(this, 'context.theme'));
     if (iconType === undefined && get(this, 'context.theme')) {
       // eslint-disable-next-line
       iconType = this.context.theme['@@shoutem.theme/themeStyle'].variables

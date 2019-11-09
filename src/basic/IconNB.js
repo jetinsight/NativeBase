@@ -75,7 +75,7 @@ class IconNB extends Component {
         this.Icon = Zocial;
         break;
       default:
-        this.Icon = Ionicons;
+        this.Icon = FontAwesome5;
     }
   }
 

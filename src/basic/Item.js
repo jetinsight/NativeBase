@@ -25,7 +25,7 @@ class Item extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isFocussed: true,
+      isFocused: false,
       text: '',
       topAnim: new Animated.Value(18),
       opacAnim: new Animated.Value(1)
@@ -33,7 +33,38 @@ class Item extends Component {
   }
   componentDidMount() {
     if (this.props.floatingLabel) {
+      if (
+        (this.inputProps && this.inputProps.value) ||
+        this.inputProps.defaultValue
+      ) {
+        const effect = () => {
+          this.setState({ isFocused: true });
+        };
+        this.floatUp(-16);
+        effect();
+      }
+      if (this.inputProps && this.inputProps.getRef)
+        this.inputProps.getRef(this._inputRef);
+    }
+  }
+
+  // Temporary fix to avoid the crash.
+  // To be refactored to getDerivedStateFromProps.
+
+  // eslint-disable-next-line camelcase
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    const childrenArray = React.Children.toArray(nextProps.children);
+
+    remove(childrenArray, item => {
+      if (item.type.displayName === 'Styled(Input)') {
+        this.inputProps = item.props;
+        return item;
+      }
+      return null;
+    });
+    if (this.props.floatingLabel) {
       if (this.inputProps && this.inputProps.value) {
+        this.setState({ isFocused: true });
         this.floatUp(-16);
       }
       if (this.inputProps && this.inputProps.getRef)
@@ -67,22 +98,26 @@ class Item extends Component {
   floatBack(e) {
     Animated.timing(this.state.topAnim, {
       toValue: e || 18,
-      duration: 150
+      duration: 150,
+      useNativeDriver: false
     }).start();
     Animated.timing(this.state.opacAnim, {
       toValue: 1,
-      duration: 150
+      duration: 150,
+      useNativeDriver: false
     }).start();
   }
 
   floatUp(e) {
     Animated.timing(this.state.topAnim, {
       toValue: e || -22,
-      duration: 150
+      duration: 150,
+      useNativeDriver: false
     }).start();
     Animated.timing(this.state.opacAnim, {
       toValue: 0.7,
-      duration: 150
+      duration: 150,
+      useNativeDriver: false
     }).start();
   }
 
@@ -92,30 +127,6 @@ class Item extends Component {
     };
 
     return computeProps(this.props, defaultProps);
-  }
-
-  // Temporary fix to avoid the crash.
-  // To be refactored to getDerivedStateFromProps.
-
-  // eslint-disable-next-line camelcase
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    const childrenArray = React.Children.toArray(nextProps.children);
-
-    remove(childrenArray, item => {
-      if (item.type.displayName === 'Styled(Input)') {
-        this.inputProps = item.props;
-        return item;
-      }
-      return null;
-    });
-    if (this.props.floatingLabel) {
-      if (this.inputProps && this.inputProps.value) {
-        this.setState({ isFocused: true });
-        this.floatUp(-16);
-      }
-      if (this.inputProps && this.inputProps.getRef)
-        this.inputProps.getRef(this._inputRef);
-    }
   }
 
   renderChildren() {
@@ -170,9 +181,7 @@ class Item extends Component {
           this.props.children[i].type.displayName !== 'Styled(Input)'
         ) {
           isIcon = true;
-          newChildren.push(
-            <Icon key={[i]} {...this.props.children[i].props} />
-          );
+          newChildren.push(<Icon key={i} {...this.props.children[i].props} />);
         }
 
         if (
@@ -301,9 +310,7 @@ class Item extends Component {
               }}
               onBlur={e => {
                 inputProps.value
-                  ? this.setState({
-                    isFocused: true
-                  })
+                  ? this.setState({ isFocused: true })
                   : !this.state.text.length &&
                     this.setState({ isFocused: false });
                 inputProps.onBlur && inputProps.onBlur(e);
@@ -348,7 +355,7 @@ class Item extends Component {
       newChildren.push(
         <Input
           ref={c => (this._inputRef = c)}
-          value={this.state.text}
+          // value={this.state.text}
           key="l2"
           {...inputProps}
           placeholder={this.getPlacholderValue(inputProps)}
@@ -358,9 +365,7 @@ class Item extends Component {
           }}
           onBlur={e => {
             inputProps.value
-              ? this.setState({
-                isFocused: true
-              })
+              ? this.setState({ isFocused: true })
               : !this.state.text.length && this.setState({ isFocused: false });
             inputProps.onBlur && inputProps.onBlur(e);
           }}

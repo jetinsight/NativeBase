@@ -1,7 +1,12 @@
 /* eslint-disable class-methods-use-this */
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { Keyboard, Platform, Animated, ViewPropTypes } from 'react-native';
+import {
+  Keyboard,
+  Platform,
+  Animated,
+  ViewPropTypes,
+  PanResponder
+} from 'react-native';
 import { connectStyle } from 'native-base-shoutem-theme';
 
 import mapPropsToStyleNames from '../utils/mapPropsToStyleNames';
@@ -18,7 +23,6 @@ const POSITION = {
 };
 
 class ToastContainer extends Component {
-  static toastInstance;
   static show({ ...config }) {
     this.toastInstance._root.showToast({ config });
   }
@@ -32,6 +36,7 @@ class ToastContainer extends Component {
 
     this.state = {
       fadeAnim: new Animated.Value(0),
+      pan: new Animated.ValueXY({ x: 0, y: 0 }),
       keyboardHeight: 0,
       isKeyboardVisible: false,
       modalVisible: false
@@ -39,11 +44,28 @@ class ToastContainer extends Component {
 
     this.keyboardDidHide = this.keyboardDidHide.bind(this);
     this.keyboardDidShow = this.keyboardDidShow.bind(this);
+    this._panResponder = PanResponder.create({
+      onMoveShouldSetPanResponderCapture: () => true,
+      onPanResponderRelease: (evt, { dx }) => {
+        if (dx !== 0) {
+          Animated.timing(this.state.pan, {
+            toValue: { x: dx, y: 0 },
+            duration: 100,
+            useNativeDriver: false
+          }).start(() => this.closeToast('swipe'));
+        }
+      }
+    });
   }
 
   componentDidMount() {
     Keyboard.addListener('keyboardDidShow', this.keyboardDidShow);
     Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
+  }
+
+  componentWillUnmount() {
+    Keyboard.removeListener('keyboardDidShow', this.keyboardDidShow);
+    Keyboard.removeListener('keyboardDidHide', this.keyboardDidHide);
   }
 
   getToastStyle() {
@@ -82,6 +104,8 @@ class ToastContainer extends Component {
     return this.state.modalVisible;
   }
 
+  static toastInstance;
+
   keyboardDidHide() {
     this.setState({
       keyboardHeight: 0,
@@ -109,7 +133,8 @@ class ToastContainer extends Component {
       buttonStyle: config.buttonStyle,
       textStyle: config.textStyle,
       onClose: config.onClose,
-      childComponent: config.childComponent
+      childComponent: config.childComponent,
+      swipeDisabled: config.swipeDisabled || false
     });
     // If we have a toast already open, cut off its close timeout so that it won't affect *this* toast.
     if (this.closeTimeout) {
@@ -126,10 +151,11 @@ class ToastContainer extends Component {
     // Fade the toast in now.
     Animated.timing(this.state.fadeAnim, {
       toValue: 1,
-      duration: 200
+      duration: 200,
+      useNativeDriver: false
     }).start();
   }
-  closeModal(reason) {
+  closeModal = reason => {
     this.setState({
       modalVisible: false
     });
@@ -137,21 +163,32 @@ class ToastContainer extends Component {
     if (onClose && typeof onClose === 'function') {
       onClose(reason);
     }
-  }
+  };
   closeToast(reason) {
     clearTimeout(this.closeTimeout);
     Animated.timing(this.state.fadeAnim, {
       toValue: 0,
-      duration: 200
-    }).start(this.closeModal.bind(this, reason));
+      duration: 200,
+      useNativeDriver: false
+    }).start(() => {
+      this.closeModal(reason);
+      this.state.pan.setValue({ x: 0, y: 0 });
+    });
   }
 
   render() {
     if (this.state.modalVisible) {
+      const { x, y } = this.state.pan;
       return (
-        <Animated.View style={this.getToastStyle()}>
+        <Animated.View
+          {...(this.state.swipeDisabled ? {} : this._panResponder.panHandlers)}
+          style={[
+            this.getToastStyle(),
+            { transform: [{ translateX: x }, { translateY: y }] }
+          ]}
+        >
           <Toast
-            style={this.state.style}
+            style={[this.state.style]}
             danger={this.state.type === 'danger'}
             success={this.state.type === 'success'}
             warning={this.state.type === 'warning'}
@@ -180,12 +217,7 @@ class ToastContainer extends Component {
 }
 
 ToastContainer.propTypes = {
-  ...ViewPropTypes,
-  style: PropTypes.oneOfType([
-    PropTypes.object,
-    PropTypes.number,
-    PropTypes.array
-  ])
+  ...ViewPropTypes
 };
 
 const StyledToastContainer = connectStyle(

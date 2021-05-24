@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable radix */
-import PropTypes from 'prop-types';
+
 import React, { Component } from 'react';
 import {
   ActionSheetIOS,
@@ -25,7 +25,6 @@ import { Body } from './Body';
 import { ListItem } from './ListItem';
 
 class ActionSheetContainer extends Component {
-  static actionsheetInstance;
   static show(config, callback) {
     this.actionsheetInstance._root.showActionSheet(config, callback);
   }
@@ -43,9 +42,12 @@ class ActionSheetContainer extends Component {
 
   componentDidMount() {
     if (!this.props.autoHide && this.props.duration) {
+      // eslint-disable-next-line no-console
       console.warn(`It's not recommended to set autoHide false with duration`);
     }
   }
+
+  static actionsheetInstance;
 
   showActionSheet(config, callback) {
     if (Platform.OS === PLATFORM.IOS) {
@@ -68,7 +70,9 @@ class ActionSheetContainer extends Component {
         destructiveButtonIndex: config.destructiveButtonIndex,
         cancelButtonIndex: config.cancelButtonIndex,
         modalVisible: true,
-        callback
+        callback,
+        style: config.style,
+        fontStyle: config.fontStyle
       });
     }
   }
@@ -96,7 +100,10 @@ class ActionSheetContainer extends Component {
           }}
           style={styles.containerTouchable}
         >
-          <TouchableOpacity activeOpacity={1} style={styles.innerTouchable}>
+          <TouchableOpacity
+            activeOpacity={1}
+            style={[styles.innerTouchable, this.state.style]}
+          >
             {this.state.title ? (
               <Text style={styles.touchableText}>{this.state.title}</Text>
             ) : null}
@@ -116,7 +123,7 @@ class ActionSheetContainer extends Component {
                     }}
                     style={styles.listItem}
                   >
-                    <Text>{item}</Text>
+                    <Text style={this.state.fontStyle}>{item}</Text>
                   </ListItem>
                 ) : (
                   <ListItem
@@ -135,13 +142,14 @@ class ActionSheetContainer extends Component {
                     <Left>
                       <Icon
                         name={item.icon}
+                        type={item.iconType}
                         style={{
                           color: item.iconColor ? item.iconColor : undefined
                         }}
                       />
                     </Left>
                     <Body style={styles.listItemBody}>
-                      <Text>{item.text}</Text>
+                      <Text style={this.state.fontStyle}>{item.text}</Text>
                     </Body>
                     <Right />
                   </ListItem>
@@ -156,12 +164,7 @@ class ActionSheetContainer extends Component {
 }
 
 ActionSheetContainer.propTypes = {
-  ...ViewPropTypes,
-  style: PropTypes.oneOfType([
-    PropTypes.object,
-    PropTypes.number,
-    PropTypes.array
-  ])
+  ...ViewPropTypes
 };
 
 const styles = StyleSheet.create({
